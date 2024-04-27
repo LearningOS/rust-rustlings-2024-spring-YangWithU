@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -23,19 +22,19 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T: PartialOrd<T>> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T:PartialOrd<T> + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T:PartialOrd<T> + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,18 +68,48 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self {
+		let mut ans = LinkedList::<T>::new();
+        let mut a = &list_a.start;
+        let mut b = &list_b.start;
+        while a.is_some() && b.is_some() {
+            let va = unsafe { &(a.unwrap().as_ref()).val }; 
+            let vb = unsafe { &(b.unwrap().as_ref()).val };
+            if va < vb {
+                ans.add(va.clone());
+                a = unsafe {
+                    &(*a.unwrap().as_ptr()).next
+                }
+            } else {
+                ans.add(vb.clone());
+                b = unsafe {
+                    &(*b.unwrap().as_ptr()).next
+                }
+            }
         }
+        while let Some(pa) = a {
+            let va = unsafe {
+                &(*pa.as_ptr()).val
+            };
+            ans.add(va.clone());
+            a = unsafe {
+                &(*pa.as_ptr()).next
+            }
+        }
+        while let Some(pb) = b {
+            let vb = unsafe {
+                &(*pb.as_ptr()).val
+            };
+            ans.add(vb.clone());
+            b = unsafe {
+                &(*pb.as_ptr()).next
+            }
+        }
+        ans
 	}
 }
 
-impl<T> Display for LinkedList<T>
+impl<T: PartialOrd<T>> Display for LinkedList<T>
 where
     T: Display,
 {
